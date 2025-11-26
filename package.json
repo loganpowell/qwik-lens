@@ -1,0 +1,25 @@
+{
+  "name": "toy-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --mode ssr",
+    "build": "qwik build",
+    "build.client": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@builder.io/qwik": "^1.17.2",
+    "@thi.ng/atom": "^5.3.48",
+    "@thi.ng/equiv": "^2.1.99",
+    "@thi.ng/paths": "^5.2.28"
+  },
+  "devDependencies": {
+    "@builder.io/qwik-city": "^1.17.2",
+    "@types/node": "^20.8.4",
+    "typescript": "5.4.5",
+    "vite": "7.1.11",
+    "vite-tsconfig-paths": "^4.2.1"
+  }
+}

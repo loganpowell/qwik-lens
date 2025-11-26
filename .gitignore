@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+server/
+.netlify/
+.vercel/
+.output/
+
+# Development
+.vscode/
+.DS_Store
+*.log
+*.local
+
+# Environment
+.env
+.env.local
+.env.production.local
+
+# Qwik
+.qwik/
+tmp/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Cache
+.cache/
+.turbo/
+.eslintcache

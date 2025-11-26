@@ -1,0 +1,8 @@
+{
+  "name": "Qwik Toy App",
+  "short_name": "Qwik Toy",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#fff",
+  "description": "A toy app built with Qwik."
+}

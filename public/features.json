@@ -1,0 +1,29 @@
+{
+  "features": [
+    {
+      "id": "1",
+      "name": "Hello",
+      "description": "Description from file."
+    },
+    {
+      "id": "2",
+      "name": "World",
+      "description": "Description from file."
+    },
+    {
+      "id": "3",
+      "name": "This",
+      "description": "New feature description"
+    },
+    {
+      "id": "4",
+      "name": "AGAIN",
+      "description": "New feature description"
+    },
+    {
+      "id": "5",
+      "name": "Feature 5",
+      "description": "New feature description"
+    }
+  ]
+}
