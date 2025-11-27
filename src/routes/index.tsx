@@ -18,12 +18,12 @@ export default component$(() => {
       <div style={{ marginBottom: "calc(var(--spacing-unit) * 4)" }}>
         <p
           style={{
-            fontSize: "3rem",
+            fontSize: "4rem",
             fontWeight: "300",
             marginBottom: "calc(var(--spacing-unit) * 2)",
           }}
         >
-          {count}
+          {count < 10 ? `0${count}` : count}
         </p>
         <button
           class="primary"
