@@ -56,7 +56,7 @@ export const DevBar = component$(() => {
           color: "var(--color-text-secondary)",
         }}
       >
-        Count: {state.count} | Features: {state.features.length}
+        {`Count: ${state.count} | Features: ${state.features.length}`}
       </p>
 
       {/* Actions */}
