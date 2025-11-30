@@ -1,5 +1,4 @@
 import { useContext, $, type ContextId, type QRL } from "@builder.io/qwik";
-import { updateIn } from "@thi.ng/paths";
 import {
   APP_STATE_CTX,
   COMMITTED_STATE_CTX,
@@ -16,11 +15,59 @@ export interface SerializableCursor<T> {
 }
 
 /**
+ * Helper to get a nested value from an object using a path array
+ */
+function getNestedValue(obj: any, path: (string | number)[]): any {
+  if (path.length === 0) return obj;
+  let current = obj;
+  for (const key of path) {
+    current = current?.[key];
+  }
+  return current;
+}
+
+/**
+ * Helper to set a nested value in an object using a path array
+ * Leverages Qwik's deep reactivity - direct mutation triggers updates
+ */
+function setNestedValue(obj: any, path: (string | number)[], value: any): void {
+  if (path.length === 0) {
+    // Can't replace root object, copy properties instead
+    for (const key in obj) {
+      delete obj[key];
+    }
+    Object.assign(obj, value);
+    return;
+  }
+
+  let current = obj;
+  for (let i = 0; i < path.length - 1; i++) {
+    current = current[path[i]];
+  }
+  current[path[path.length - 1]] = value;
+}
+
+/**
+ * Updates diffState with new diff values using Qwik's deep reactivity
+ */
+function updateDiffState(
+  diffState: any,
+  newDiff: { hasChanges: boolean; changedPaths: string[]; summary: any }
+): void {
+  diffState.hasChanges = newDiff.hasChanges;
+  diffState.changedPaths = newDiff.changedPaths;
+  diffState.summary = newDiff.summary;
+}
+
+/**
  * Creates a serializable cursor-like interface for a Qwik context value.
  *
  * This hook provides atom-like operations (swap, reset) that work with Qwik's
  * serialization and reactivity system. When used with APP_STATE_CTX, it also
  * handles localStorage persistence and diff calculation.
+ *
+ * Uses Qwik's native deep reactivity - direct mutations to nested properties
+ * automatically trigger component updates without needing Object.assign.
  *
  * @param contextId - The Qwik context ID to create a cursor for
  * @param path - Optional path within the context value (default: [])
@@ -48,51 +95,34 @@ export function useContextCursor<T extends Record<string, any>, V = any>(
 
   // Get the value at the path (or the entire context if no path)
   const getValue = (): V => {
-    if (path.length === 0) {
-      return contextValue as any as V;
-    }
-    let current: any = contextValue;
-    for (const key of path) {
-      current = current?.[key];
-    }
-    return current as V;
+    return getNestedValue(contextValue, path) as V;
   };
 
   const swap = $((updateFn: (value: V) => V) => {
-    if (path.length > 0) {
-      // Update at the specific path
-      const newState = updateIn(contextValue, path as any, updateFn);
-      Object.assign(contextValue, newState);
-    } else {
-      // Update the entire context
-      const currentValue = contextValue as any as V;
-      const newValue = updateFn(currentValue);
-      Object.assign(contextValue, newValue);
-    }
+    // Get current value, apply update function, then set new value
+    const currentValue = getNestedValue(contextValue, path) as V;
+    const newValue = updateFn(currentValue);
+
+    // Qwik's useStore provides deep reactivity - direct mutation triggers updates
+    setNestedValue(contextValue, path, newValue);
 
     // Handle localStorage and diff for APP_STATE_CTX
     if (isAppState && committedState && diffState) {
       localStorage.setItem("appState", JSON.stringify(contextValue));
       const newDiff = calculateDiff(committedState, contextValue as any);
-      Object.assign(diffState, newDiff);
+      updateDiffState(diffState, newDiff);
     }
   });
 
   const reset = $((newValue: V) => {
-    if (path.length > 0) {
-      // Reset at the specific path
-      const newState = updateIn(contextValue, path as any, () => newValue);
-      Object.assign(contextValue, newState);
-    } else {
-      // Reset the entire context
-      Object.assign(contextValue, newValue);
-    }
+    // Qwik's useStore provides deep reactivity - direct mutation triggers updates
+    setNestedValue(contextValue, path, newValue);
 
     // Handle localStorage and diff for APP_STATE_CTX
     if (isAppState && committedState && diffState) {
       localStorage.setItem("appState", JSON.stringify(contextValue));
       const newDiff = calculateDiff(committedState, contextValue as any);
-      Object.assign(diffState, newDiff);
+      updateDiffState(diffState, newDiff);
     }
   });
 

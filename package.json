@@ -14,7 +14,6 @@
   "dependencies": {
     "@builder.io/qwik": "^1.17.2",
     "@thi.ng/equiv": "^2.1.99",
-    "@thi.ng/paths": "^5.2.28",
     "ignore": "^7.0.5"
   },
   "devDependencies": {
