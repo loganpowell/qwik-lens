@@ -13,7 +13,7 @@ export default component$(() => {
   );
 
   // Sort features by ID - handle undefined/empty case
-  const sortedFeatures = [...features].sort((a, b) => a.id.localeCompare(b.id));
+  const sortedFeatures = features.sort((a, b) => a.id.localeCompare(b.id));
   // console.log("Rendering Features page with features:", sortedFeatures);
   return (
     <div
@@ -27,20 +27,17 @@ export default component$(() => {
 
       <button
         class="primary"
-        onClick$={async () => {
-          // deref() gets the current value inside the QRL
-          const currentFeatures = await featuresCursor.deref();
-          const newId = String(currentFeatures.length + 1);
-          const newFeature = {
-            id: newId,
-            name: `Feature ${newId}`,
-            description: "New feature description",
-          };
-
-          featuresCursor.swap((features: Feature[]) => [
-            ...features,
-            newFeature,
-          ]);
+        onClick$={() => {
+          // swap() receives the current value as a parameter - no await needed!
+          featuresCursor.swap((currentFeatures: Feature[]) => {
+            const newId = String(currentFeatures.length + 1);
+            const newFeature = {
+              id: newId,
+              name: `Feature ${newId}`,
+              description: "New feature description",
+            };
+            return [...currentFeatures, newFeature];
+          });
         }}
         style={{
           marginBottom: "calc(var(--spacing-unit) * 6)",

@@ -90,9 +90,9 @@ function updateDiffState(
  *
  * @example
  * // Use the cursor to update state in a QRL
- * onClick$={() => {
- *   const currentFeatures = featuresCursor.deref();
+ * onClick$={async () => {
  *   featuresCursor.swap((features) => [...features, newFeature]);
+ *   // Or read current value: const current = await featuresCursor.deref();
  * });
  */
 export function useContextCursor<T extends Record<string, any>, V = any>(

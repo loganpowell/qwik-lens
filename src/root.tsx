@@ -43,9 +43,6 @@ export default component$(() => {
   const [, committedCursor] = useContextCursor(COMMITTED_STATE_CTX);
   const [, diffCursor] = useContextCursor(DIFF_STATE_CTX);
 
-  useVisibleTask$(() => {
-    console.log("App mounted");
-  });
   useVisibleTask$(
     async () => {
       // 1. Load committed state from JSON file
@@ -69,11 +66,11 @@ export default component$(() => {
         // Merge: keep user's count, but use fresh features from JSON as base
         stagedData = {
           count: savedState.count ?? 0,
-          features: fileState.features, // Always use fresh features from JSON
+          features: fileState.features,
         };
       } else {
         // No localStorage, so staged = committed (no changes yet)
-        stagedData = JSON.parse(JSON.stringify(committedData));
+        stagedData = committedData;
         console.log("No staged state, using committed as initial staged");
       }
 
