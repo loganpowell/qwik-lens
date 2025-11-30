@@ -1,4 +1,4 @@
-import { component$, useContext } from "@builder.io/qwik";
+import { component$, useContext } from "@qwik.dev/core";
 import {
   APP_STATE_CTX,
   COMMITTED_STATE_CTX,
@@ -39,7 +39,7 @@ export const DevBar = component$(() => {
         <span style={{ color: "var(--color-text-secondary)" }}>Changes: </span>
         <span
           style={{
-            color: diff.hasChanges
+            color: diff?.hasChanges
               ? "var(--color-accent)"
               : "var(--color-text-secondary)",
           }}
@@ -56,7 +56,7 @@ export const DevBar = component$(() => {
           color: "var(--color-text-secondary)",
         }}
       >
-        {`Count: ${state.count} | Features: ${state.features.length}`}
+        Count: {state.count} | Features: {state.features.length}
       </p>
 
       {/* Actions */}

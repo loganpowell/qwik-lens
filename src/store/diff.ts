@@ -52,8 +52,8 @@ export function calculateDiff(
   };
 }
 
-export function getDiffSummary(diff: DiffState): string {
-  if (!diff.hasChanges) return "No changes";
+export function getDiffSummary(diff: DiffState | undefined): string {
+  if (!diff || !diff.hasChanges) return "No changes";
 
   const parts: string[] = [];
   if (diff.summary.addedCount > 0)

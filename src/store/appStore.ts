@@ -1,4 +1,4 @@
-import { createContextId } from "@builder.io/qwik";
+import { createContextId } from "@qwik.dev/core";
 import { DataState } from "../types/data";
 import type { DiffState } from "./diff";
 

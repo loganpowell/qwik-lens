@@ -1,10 +1,10 @@
-import { component$, useContext } from "@builder.io/qwik";
+import { component$, useContext } from "@qwik.dev/core";
 import type { Feature } from "~/types/data";
 import { APP_STATE_CTX } from "~/store/appStore";
 import { useContextCursor } from "~/hooks/useContextCursor";
 
 export const FeatureCard = component$<{ feature: Feature }>(({ feature }) => {
-  const [_, featuresCursor] = useContextCursor(APP_STATE_CTX, ["features"]);
+  const [, featuresCursor] = useContextCursor(APP_STATE_CTX, ["features"]);
 
   return (
     <div

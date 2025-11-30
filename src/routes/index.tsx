@@ -1,5 +1,5 @@
-import { component$, useContext } from "@builder.io/qwik";
-import { Link } from "@builder.io/qwik-city";
+import { component$, useContext } from "@qwik.dev/core";
+import { Link } from "@qwik.dev/router";
 import { APP_STATE_CTX } from "~/store/appStore";
 import { FeatureCard } from "~/components/FeatureCard";
 import { useContextCursor } from "~/hooks/useContextCursor";
@@ -8,7 +8,6 @@ import { type Feature } from "~/types/data";
 export default component$(() => {
   const [count, countCursor] = useContextCursor(APP_STATE_CTX, ["count"]);
   const [features] = useContextCursor(APP_STATE_CTX, ["features"]);
-
   return (
     <div
       style={{ padding: "calc(var(--spacing-unit) * 8)", maxWidth: "800px" }}
@@ -48,9 +47,9 @@ export default component$(() => {
           marginBottom: "calc(var(--spacing-unit) * 3)",
         }}
       >
-        {Math.min(3, features.length)} of {features.length}
+        {Math.min(3, features?.length ?? 0)} of {features?.length ?? 0}
       </p>
-      {features.slice(0, 3).map((f: Feature) => (
+      {features?.slice(0, 3).map((f: Feature) => (
         <FeatureCard key={f.id} feature={f} />
       ))}
     </div>

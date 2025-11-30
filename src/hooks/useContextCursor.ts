@@ -1,4 +1,6 @@
-import { useContext, $, type ContextId, type QRL } from "@builder.io/qwik";
+import { useContext, $, type ContextId, type QRL } from "@qwik.dev/core";
+// import type { Path, Path0, OptPathVal } from "@thi.ng/api";
+// import { getIn } from "@thi.ng/paths";
 import {
   APP_STATE_CTX,
   COMMITTED_STATE_CTX,
@@ -10,6 +12,7 @@ import { calculateDiff } from "~/store/diff";
  * Serializable cursor interface that mimics thi.ng/atom cursor operations
  */
 export interface SerializableCursor<T> {
+  deref: QRL<() => T>;
   swap: QRL<(updateFn: (value: T) => T) => void>;
   reset: QRL<(newValue: T) => void>;
 }
@@ -60,30 +63,41 @@ function updateDiffState(
 }
 
 /**
- * Creates a serializable cursor-like interface for a Qwik context value.
+ * Creates a type-safe serializable cursor-like interface for a Qwik context value.
  *
- * This hook provides atom-like operations (swap, reset) that work with Qwik's
- * serialization and reactivity system. When used with APP_STATE_CTX, it also
- * handles localStorage persistence and diff calculation.
+ * This hook combines thi.ng/paths type inference with Qwik's serialization and reactivity.
+ * Provides atom-like operations (swap, reset, deref) that work with QRLs. When used with
+ * APP_STATE_CTX, it also handles localStorage persistence and diff calculation.
  *
  * Uses Qwik's native deep reactivity - direct mutations to nested properties
  * automatically trigger component updates without needing Object.assign.
  *
  * @param contextId - The Qwik context ID to create a cursor for
- * @param path - Optional path within the context value (default: [])
- * @returns A tuple of [value, { swap, reset }] similar to React's useState
+ * @param path - Optional typed path to nested property (e.g., ["features"] or ["features", 0, "name"])
+ * @returns A tuple of [value, { deref, swap, reset }] with automatic type inference based on path
  *
  * @example
- * // Get a cursor for a specific path
+ * // Get whole context with type inference (type: AppState)
+ * const [state, stateCursor] = useContextCursor(APP_STATE_CTX);
+ *
+ * @example
+ * // Get nested property with automatic type inference (type: Feature[])
  * const [features, featuresCursor] = useContextCursor(APP_STATE_CTX, ["features"]);
  *
  * @example
- * // Use the cursor to update state
- * featuresCursor.swap((features) => [...features, newFeature]);
+ * // Deep path with full type safety (type: string)
+ * const [name, nameCursor] = useContextCursor(APP_STATE_CTX, ["features", 0, "name"]);
+ *
+ * @example
+ * // Use the cursor to update state in a QRL
+ * onClick$={() => {
+ *   const currentFeatures = featuresCursor.deref();
+ *   featuresCursor.swap((features) => [...features, newFeature]);
+ * });
  */
 export function useContextCursor<T extends Record<string, any>, V = any>(
   contextId: ContextId<T>,
-  path: (string | number)[] = []
+  path?: readonly (string | number)[]
 ): [V, SerializableCursor<V>] {
   const contextValue = useContext(contextId);
 
@@ -93,18 +107,36 @@ export function useContextCursor<T extends Record<string, any>, V = any>(
   const committedState = isAppState ? useContext(COMMITTED_STATE_CTX) : null;
   const diffState = isAppState ? useContext(DIFF_STATE_CTX) : null;
 
-  // Get the value at the path (or the entire context if no path)
-  const getValue = (): V => {
-    return getNestedValue(contextValue, path) as V;
-  };
+  // Normalize path to always be an array
+  const normalizedPath = (path ?? []) as (string | number)[];
+
+  // For reactivity, return the direct property access from the reactive store
+  // The key is that we DON'T capture the value in a variable - we return
+  // the property access itself so Qwik can track it
+  let value: V;
+  if (normalizedPath.length === 0) {
+    value = contextValue as any as V;
+  } else {
+    // Navigate to the nested property - this maintains the proxy chain
+    let current: any = contextValue;
+    for (const key of normalizedPath) {
+      current = current[key];
+    }
+    value = current as V;
+  }
+
+  // Deref function to get current value inside QRLs
+  const deref = $(() => {
+    return getNestedValue(contextValue, normalizedPath) as V;
+  });
 
   const swap = $((updateFn: (value: V) => V) => {
     // Get current value, apply update function, then set new value
-    const currentValue = getNestedValue(contextValue, path) as V;
+    const currentValue = getNestedValue(contextValue, normalizedPath) as V;
     const newValue = updateFn(currentValue);
 
     // Qwik's useStore provides deep reactivity - direct mutation triggers updates
-    setNestedValue(contextValue, path, newValue);
+    setNestedValue(contextValue, normalizedPath, newValue);
 
     // Handle localStorage and diff for APP_STATE_CTX
     if (isAppState && committedState && diffState) {
@@ -116,7 +148,7 @@ export function useContextCursor<T extends Record<string, any>, V = any>(
 
   const reset = $((newValue: V) => {
     // Qwik's useStore provides deep reactivity - direct mutation triggers updates
-    setNestedValue(contextValue, path, newValue);
+    setNestedValue(contextValue, normalizedPath, newValue);
 
     // Handle localStorage and diff for APP_STATE_CTX
     if (isAppState && committedState && diffState) {
@@ -126,5 +158,5 @@ export function useContextCursor<T extends Record<string, any>, V = any>(
     }
   });
 
-  return [getValue(), { swap, reset }];
+  return [value, { deref, swap, reset }];
 }

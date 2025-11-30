@@ -1,18 +1,20 @@
-import { component$ } from "@builder.io/qwik";
-import { Link } from "@builder.io/qwik-city";
+import { component$, useContext } from "@qwik.dev/core";
+import { Link } from "@qwik.dev/router";
 import { APP_STATE_CTX } from "~/store/appStore";
 import { FeatureCard } from "~/components/FeatureCard";
 import { useContextCursor } from "~/hooks/useContextCursor";
 import type { Feature } from "~/types/data";
 
 export default component$(() => {
-  const [features, featuresCursor] = useContextCursor(APP_STATE_CTX, [
-    "features",
-  ]);
+  // TypeScript infers the context type, you only specify the value type
+  const [features, featuresCursor] = useContextCursor<any, Feature[]>(
+    APP_STATE_CTX,
+    ["features"]
+  );
 
-  // Sort features by ID
+  // Sort features by ID - handle undefined/empty case
   const sortedFeatures = [...features].sort((a, b) => a.id.localeCompare(b.id));
-
+  // console.log("Rendering Features page with features:", sortedFeatures);
   return (
     <div
       style={{ padding: "calc(var(--spacing-unit) * 8)", maxWidth: "800px" }}
@@ -25,8 +27,10 @@ export default component$(() => {
 
       <button
         class="primary"
-        onClick$={() => {
-          const newId = String(features.length + 1);
+        onClick$={async () => {
+          // deref() gets the current value inside the QRL
+          const currentFeatures = await featuresCursor.deref();
+          const newId = String(currentFeatures.length + 1);
           const newFeature = {
             id: newId,
             name: `Feature ${newId}`,
