@@ -5,6 +5,10 @@ import { FeatureCard } from "~/components/FeatureCard";
 import { useContextCursor } from "~/hooks/useContextCursor";
 import type { Feature } from "~/types/data";
 
+// Get base path for links
+const base = import.meta.env.BASE_URL || "/";
+const basePath = base.endsWith("/") && base !== "/" ? base.slice(0, -1) : base === "/" ? "" : base;
+
 export default component$(() => {
   // TypeScript infers the context type, you only specify the value type
   const [features, featuresCursor] = useContextCursor<any, Feature[]>(
@@ -24,7 +28,7 @@ export default component$(() => {
       }}
     >
       <div style={{ marginBottom: "calc(var(--spacing-unit) * 6)" }}>
-        <Link href="/">Back</Link>
+        <Link href={basePath || "/"}>Back</Link>
       </div>
 
       <h1>Pokémon Cards</h1>
