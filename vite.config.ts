@@ -12,6 +12,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
  */
 export default defineConfig(({ command, mode }): UserConfig => {
   return {
+    base: "/qwik-lens/",
     plugins: [qwikRouter(), qwikVite(), tsconfigPaths({ root: "." })],
     resolve: {
       dedupe: ["@qwik.dev/core", "@qwik.dev/router"],
