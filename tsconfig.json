@@ -18,7 +18,14 @@
     "types": ["node", "vite/client"],
     "paths": {
       "~/*": ["./src/*"]
-    }
+    },
+    "plugins": [
+      // { "name": "typescript-plugin-css-modules" },
+      { "name": "typescript-tslint-plugin" },
+      { "name": "typescript-plugin-qwik" }
+      // postcss plugin for tailwindcss autocompletion
+      // { "name": "typescript-plugin-postcss" }
+    ]
   },
   "include": ["src"]
 }
