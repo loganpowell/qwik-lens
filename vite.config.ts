@@ -25,7 +25,13 @@ export default defineConfig(({ command, mode }): UserConfig => {
 
     // SSR configuration
     ssr: {
-      noExternal: ["@qwik.dev/core", "@qwik.dev/router"],
+      noExternal: [
+        "@qwik.dev/core",
+        "@qwik.dev/router",
+        "@thi.ng/api",
+        "@thi.ng/equiv",
+        "@thi.ng/paths",
+      ],
     },
     server: {
       headers: {
