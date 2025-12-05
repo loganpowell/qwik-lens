@@ -5,6 +5,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig(() => {
   return {
+    base: process.env.GITHUB_PAGES ? "/qwik-lens/" : "/",
     plugins: [qwikRouter(), qwikVite(), tsconfigPaths()],
     preview: {
       headers: {
