@@ -4,10 +4,7 @@ import { APP_STATE_CTX } from "~/store/appStore";
 import { FeatureCard } from "~/components/FeatureCard";
 import { useContextCursor } from "~/hooks/useContextCursor";
 import { type Feature } from "~/types/data";
-
-// Get base path for links
-const base = import.meta.env.BASE_URL || "/";
-const basePath = base.endsWith("/") && base !== "/" ? base.slice(0, -1) : base === "/" ? "" : base;
+import { getRoutePath } from "~/utils/basePath";
 
 export default component$(() => {
   const [count, countCursor] = useContextCursor(APP_STATE_CTX, ["count"]);
@@ -41,7 +38,7 @@ export default component$(() => {
       <hr />
 
       <div style={{ marginBottom: "calc(var(--spacing-unit) * 4)" }}>
-        <Link href={`${basePath}/features`}>View All Cards</Link>
+        <Link href={getRoutePath("/features")}>View All Cards</Link>
       </div>
 
       <h2>Recent Cards</h2>

@@ -4,10 +4,7 @@ import { APP_STATE_CTX } from "~/store/appStore";
 import { FeatureCard } from "~/components/FeatureCard";
 import { useContextCursor } from "~/hooks/useContextCursor";
 import type { Feature } from "~/types/data";
-
-// Get base path for links
-const base = import.meta.env.BASE_URL || "/";
-const basePath = base.endsWith("/") && base !== "/" ? base.slice(0, -1) : base === "/" ? "" : base;
+import { getRoutePath } from "~/utils/basePath";
 
 export default component$(() => {
   // TypeScript infers the context type, you only specify the value type
@@ -28,7 +25,7 @@ export default component$(() => {
       }}
     >
       <div style={{ marginBottom: "calc(var(--spacing-unit) * 6)" }}>
-        <Link href={basePath || "/"}>Back</Link>
+        <Link href={getRoutePath("/")}>Back</Link>
       </div>
 
       <h1>Pokémon Cards</h1>

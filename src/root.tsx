@@ -21,14 +21,11 @@ import { calculateDiff, type DiffState } from "./store/diff";
 import { useContextCursor } from "./hooks/useContextCursor";
 
 import "./global.css";
+import { getResourcePath } from "./utils/basePath";
 
-// Use Vite's BASE_URL which respects the base config in vite.config.ts
-// For GitHub Pages, this will be "/qwik-lens/" when base is set
-// Remove trailing slash for JSON file paths
-const base = import.meta.env.BASE_URL || "/";
-const basePath = base === "/" ? "" : base.replace(/\/$/, "");
-const featuresEndpoint = basePath + "/features.json";
-const manifestEndpoint = basePath + "/manifest.json";
+// Resource endpoints for GitHub Pages deployment
+const featuresEndpoint = getResourcePath("/features.json");
+const manifestEndpoint = getResourcePath("/manifest.json");
 
 export default component$(() => {
   const state = useStore<DataState>(createEmptyDataState());
