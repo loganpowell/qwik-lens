@@ -20,13 +20,9 @@ Add the `base` property to your main Vite configuration:
 export default defineConfig(({ command, mode }): UserConfig => {
   return {
     // Base path for GitHub Pages deployment
-    base: "/qwik-lens/",  // Replace with your repository name
-    
-    plugins: [
-      qwikRouter(),
-      qwikVite(),
-      tsconfigPaths({ root: "." }),
-    ],
+    base: "/qwik-lens/", // Replace with your repository name
+
+    plugins: [qwikRouter(), qwikVite(), tsconfigPaths({ root: "." })],
     // ... rest of config
   };
 });
@@ -40,7 +36,7 @@ export default defineConfig(({ command, mode }): UserConfig => {
 export default extendConfig(baseConfig, () => {
   return {
     // This is crucial for GitHub Pages
-    base: "/qwik-lens/",  // Replace with your repository name
+    base: "/qwik-lens/", // Replace with your repository name
 
     build: {
       ssr: true,
@@ -52,7 +48,7 @@ export default extendConfig(baseConfig, () => {
     plugins: [
       ssgAdapter({
         // The production URL where the site will be hosted
-        origin: "https://loganpowell.github.io/qwik-lens",  // Replace with your URL
+        origin: "https://loganpowell.github.io/qwik-lens", // Replace with your URL
       }),
     ],
   };
@@ -109,7 +105,7 @@ const manifestEndpoint = getResourcePath("/manifest.json");
 
 export default component$(() => {
   // ... component code
-  
+
   useVisibleTask$(async () => {
     // This will fetch from /qwik-lens/features.json on GitHub Pages
     const response = await fetch(featuresEndpoint);
@@ -134,7 +130,7 @@ export default component$(() => {
     <div>
       {/* Will navigate to /qwik-lens/features on GitHub Pages */}
       <Link href={getRoutePath("/features")}>View All Cards</Link>
-      
+
       {/* Back to home */}
       <Link href={getRoutePath("/")}>Back</Link>
     </div>
@@ -150,21 +146,22 @@ Create an automated postdeploy script to copy necessary files:
 
 ```javascript
 #!/usr/bin/env node
-import { cpSync, existsSync, readdirSync, statSync } from 'fs';
-import { join } from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import { cpSync, existsSync, readdirSync, statSync } from "fs";
+import { join } from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const projectRoot = join(__dirname, '..');
-const distRoot = join(projectRoot, 'dist');
-const publicDir = join(projectRoot, 'public');
-const targetDir = join(distRoot, 'qwik-lens');
+const projectRoot = join(__dirname, "..");
+const distRoot = join(projectRoot, "dist");
+const publicDir = join(projectRoot, "public");
+// 🔥 IMPORTANT: REPLACE YOUR REPO NAME 🔻
+const targetDir = join(distRoot, "qwik-lens");
 
 // Directories to copy
-const dirsToCopy = ['build', 'assets'];
+const dirsToCopy = ["build", "assets"];
 
 function copyRecursive(source, destination) {
   try {
@@ -176,7 +173,7 @@ function copyRecursive(source, destination) {
 }
 
 function main() {
-  console.log('🚀 Running post-deployment script...\n');
+  console.log("🚀 Running post-deployment script...\n");
 
   if (!existsSync(targetDir)) {
     console.error(`✗ Target directory does not exist: ${targetDir}`);
@@ -184,25 +181,25 @@ function main() {
   }
 
   // Copy build and assets directories
-  console.log('📦 Copying build directories...');
+  console.log("📦 Copying build directories...");
   for (const dir of dirsToCopy) {
     const source = join(distRoot, dir);
     const destination = join(targetDir, dir);
-    
+
     if (existsSync(source)) {
       copyRecursive(source, destination);
     }
   }
 
   // Copy all files from public directory
-  console.log('\n📄 Copying public files...');
+  console.log("\n📄 Copying public files...");
   if (existsSync(publicDir)) {
     const publicFiles = readdirSync(publicDir);
-    
+
     for (const file of publicFiles) {
       const sourcePath = join(publicDir, file);
       const stat = statSync(sourcePath);
-      
+
       if (stat.isFile()) {
         const destPath = join(targetDir, file);
         copyRecursive(sourcePath, destPath);
@@ -211,24 +208,24 @@ function main() {
   }
 
   // Check for generated JSON files at dist root
-  console.log('\n📋 Checking for generated files at dist root...');
+  console.log("\n📋 Checking for generated files at dist root...");
   if (existsSync(distRoot)) {
     const distFiles = readdirSync(distRoot);
-    const jsonFiles = distFiles.filter(f => 
-      f.endsWith('.json') && statSync(join(distRoot, f)).isFile()
+    const jsonFiles = distFiles.filter(
+      (f) => f.endsWith(".json") && statSync(join(distRoot, f)).isFile()
     );
-    
+
     for (const file of jsonFiles) {
       const sourcePath = join(distRoot, file);
       const destPath = join(targetDir, file);
-      
+
       if (!existsSync(destPath)) {
         copyRecursive(sourcePath, destPath);
       }
     }
   }
 
-  console.log('\n✅ Post-deployment complete!\n');
+  console.log("\n✅ Post-deployment complete!\n");
 }
 
 main();
@@ -254,6 +251,7 @@ Update your package.json to use the script:
 ```
 
 **Why this approach is better:**
+
 - Automatically copies all files from the `public/` directory
 - Future-proof: adding new files to `public/` requires no script changes
 - Provides clear console output showing what was copied
@@ -268,74 +266,75 @@ Create `.github/workflows/deploy.yml`:
 name: Deploy to GitHub Pages
 
 on:
-    push:
-        branches:
-            - main
-    workflow_dispatch:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
 permissions:
-    contents: read
-    pages: write
-    id-token: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
-    group: "pages"
-    cancel-in-progress: false
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-    build_site:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v5
+  build_site:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
 
-            - name: Install pnpm
-              uses: pnpm/action-setup@v4
-              with:
-                  version: 10.15.0
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
 
-            - name: Install Node.js
-              uses: actions/setup-node@v5
-              with:
-                  node-version: 24.7.0
-                  cache: "pnpm"
+      - name: Install Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24.7.0
+          cache: "pnpm"
 
-            - run: corepack enable
+      - run: corepack enable
 
-            - name: Install dependencies
-              run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-            - name: build
-              env:
-                  REPO_NAME: ${{ github.event.repository.name }}
-              run: |
-                  pnpm run deploy
+      - name: build
+        env:
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          pnpm run deploy
 
-            - name: Upload Artifacts
-              uses: actions/upload-pages-artifact@v3
-              with:
-                  # Upload only the qwik-lens subdirectory, not the entire dist folder
-                  path: "dist/qwik-lens"
+      - name: Upload Artifacts
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Upload only the qwik-lens subdirectory, not the entire dist folder
+          path: "dist/qwik-lens"
 
-    deploy:
-        needs: build_site
-        runs-on: ubuntu-latest
+  deploy:
+    needs: build_site
+    runs-on: ubuntu-latest
 
-        permissions:
-            pages: write
-            id-token: write
+    permissions:
+      pages: write
+      id-token: write
 
-        environment:
-            name: github-pages
-            url: ${{ steps.deployment.outputs.page_url }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
-        steps:
-            - name: Deploy
-              id: deployment
-              uses: actions/deploy-pages@v4
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
 ```
 
 **Key points:**
+
 - `path: "dist/qwik-lens"` - Upload only the final output directory, not the entire `dist/` folder
 - `pnpm install --frozen-lockfile` - Ensures reproducible builds
 - The `deploy` script runs both client and server builds, then `postdeploy` copies files
@@ -366,7 +365,8 @@ jobs:
 
 **Problem:** Runtime fetch calls fail with 404.
 
-**Solution:** 
+**Solution:**
+
 1. Ensure the `postdeploy` script copies the files to `dist/qwik-lens/`
 2. Use `import.meta.env.BASE_URL` to construct the fetch URL at build time
 3. Verify the base path is set in the main `vite.config.ts` (not just the adapter config)

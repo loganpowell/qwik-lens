@@ -1,6 +1,6 @@
 /**
  * Base path utilities for GitHub Pages deployment
- * 
+ *
  * When deployed to GitHub Pages, the app is served from a subdirectory
  * (e.g., /qwik-lens/). These utilities ensure all paths are correctly
  * prefixed with the base path.
@@ -18,7 +18,7 @@ export const getBase = (): string => {
 /**
  * Get the base path without trailing slash.
  * Useful for constructing resource URLs like "/qwik-lens/features.json"
- * 
+ *
  * @returns Empty string for root ("/"), or base path without trailing slash
  */
 export const getBasePath = (): string => {
@@ -28,10 +28,10 @@ export const getBasePath = (): string => {
 
 /**
  * Get a resource path with the base path prepended.
- * 
+ *
  * @param path - The resource path (e.g., "/features.json" or "features.json")
  * @returns Full path with base (e.g., "/qwik-lens/features.json")
- * 
+ *
  * @example
  * ```ts
  * const url = getResourcePath("/features.json");
@@ -47,10 +47,10 @@ export const getResourcePath = (path: string): string => {
 
 /**
  * Get a route path with the base path prepended.
- * 
+ *
  * @param route - The route path (e.g., "/features" or "features")
  * @returns Full route with base (e.g., "/qwik-lens/features")
- * 
+ *
  * @example
  * ```tsx
  * <Link href={getRoutePath("/features")}>Features</Link>
@@ -59,12 +59,12 @@ export const getResourcePath = (path: string): string => {
  */
 export const getRoutePath = (route: string): string => {
   const basePath = getBasePath();
-  
+
   // Handle root/home route
   if (route === "/" || route === "") {
     return basePath || "/";
   }
-  
+
   // Handle other routes
   const cleanRoute = route.startsWith("/") ? route : `/${route}`;
   return `${basePath}${cleanRoute}`;
