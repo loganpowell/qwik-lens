@@ -61,20 +61,51 @@ export default extendConfig(baseConfig, () => {
 
 ### 2. Resource Paths in Source Code
 
-Use `import.meta.env.BASE_URL` for any runtime resource fetching:
+Create a utility file for base path handling to keep the logic consistent across your app:
+
+#### `src/utils/basePath.ts`
+
+```typescript
+/**
+ * Base path utilities for GitHub Pages deployment
+ */
+
+export const getBase = (): string => {
+  return import.meta.env.BASE_URL || "/";
+};
+
+export const getBasePath = (): string => {
+  const base = getBase();
+  return base === "/" ? "" : base.replace(/\/$/, "");
+};
+
+export const getResourcePath = (path: string): string => {
+  const basePath = getBasePath();
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  return `${basePath}${cleanPath}`;
+};
+
+export const getRoutePath = (route: string): string => {
+  const basePath = getBasePath();
+  if (route === "/" || route === "") {
+    return basePath || "/";
+  }
+  const cleanRoute = route.startsWith("/") ? route : `/${route}`;
+  return `${basePath}${cleanRoute}`;
+};
+```
 
 #### `src/root.tsx`
 
+Use the utility functions for resource fetching:
+
 ```typescript
 import "./global.css";
+import { getResourcePath } from "./utils/basePath";
 
-// Use Vite's BASE_URL which respects the base config in vite.config.ts
-// For GitHub Pages, this will be "/qwik-lens/" when base is set
-// Remove trailing slash for JSON file paths
-const base = import.meta.env.BASE_URL || "/";
-const basePath = base === "/" ? "" : base.replace(/\/$/, "");
-const featuresEndpoint = basePath + "/features.json";
-const manifestEndpoint = basePath + "/manifest.json";
+// Resource endpoints for GitHub Pages deployment
+const featuresEndpoint = getResourcePath("/features.json");
+const manifestEndpoint = getResourcePath("/manifest.json");
 
 export default component$(() => {
   // ... component code
@@ -89,25 +120,23 @@ export default component$(() => {
 
 ### 3. Navigation Links
 
-For navigation links, prepend the base path to all route hrefs:
+Use the `getRoutePath` utility for all navigation links:
 
 #### Any route file (e.g., `src/routes/index.tsx`)
 
 ```typescript
+import { component$ } from "@qwik.dev/core";
 import { Link } from "@qwik.dev/router";
-
-// Get base path for links
-const base = import.meta.env.BASE_URL || "/";
-const basePath = base.endsWith("/") && base !== "/" ? base.slice(0, -1) : base === "/" ? "" : base;
+import { getRoutePath } from "~/utils/basePath";
 
 export default component$(() => {
   return (
     <div>
       {/* Will navigate to /qwik-lens/features on GitHub Pages */}
-      <Link href={`${basePath}/features`}>View All Cards</Link>
+      <Link href={getRoutePath("/features")}>View All Cards</Link>
       
       {/* Back to home */}
-      <Link href={basePath || "/"}>Back</Link>
+      <Link href={getRoutePath("/")}>Back</Link>
     </div>
   );
 });
@@ -115,7 +144,99 @@ export default component$(() => {
 
 ### 4. Build Scripts
 
-Update your `package.json` to include a postdeploy step that copies necessary files:
+Create an automated postdeploy script to copy necessary files:
+
+#### `scripts/postdeploy.js`
+
+```javascript
+#!/usr/bin/env node
+import { cpSync, existsSync, readdirSync, statSync } from 'fs';
+import { join } from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const projectRoot = join(__dirname, '..');
+const distRoot = join(projectRoot, 'dist');
+const publicDir = join(projectRoot, 'public');
+const targetDir = join(distRoot, 'qwik-lens');
+
+// Directories to copy
+const dirsToCopy = ['build', 'assets'];
+
+function copyRecursive(source, destination) {
+  try {
+    cpSync(source, destination, { recursive: true, force: true });
+    console.log(`✓ Copied: ${source} → ${destination}`);
+  } catch (error) {
+    console.error(`✗ Failed to copy ${source}:`, error.message);
+  }
+}
+
+function main() {
+  console.log('🚀 Running post-deployment script...\n');
+
+  if (!existsSync(targetDir)) {
+    console.error(`✗ Target directory does not exist: ${targetDir}`);
+    process.exit(1);
+  }
+
+  // Copy build and assets directories
+  console.log('📦 Copying build directories...');
+  for (const dir of dirsToCopy) {
+    const source = join(distRoot, dir);
+    const destination = join(targetDir, dir);
+    
+    if (existsSync(source)) {
+      copyRecursive(source, destination);
+    }
+  }
+
+  // Copy all files from public directory
+  console.log('\n📄 Copying public files...');
+  if (existsSync(publicDir)) {
+    const publicFiles = readdirSync(publicDir);
+    
+    for (const file of publicFiles) {
+      const sourcePath = join(publicDir, file);
+      const stat = statSync(sourcePath);
+      
+      if (stat.isFile()) {
+        const destPath = join(targetDir, file);
+        copyRecursive(sourcePath, destPath);
+      }
+    }
+  }
+
+  // Check for generated JSON files at dist root
+  console.log('\n📋 Checking for generated files at dist root...');
+  if (existsSync(distRoot)) {
+    const distFiles = readdirSync(distRoot);
+    const jsonFiles = distFiles.filter(f => 
+      f.endsWith('.json') && statSync(join(distRoot, f)).isFile()
+    );
+    
+    for (const file of jsonFiles) {
+      const sourcePath = join(distRoot, file);
+      const destPath = join(targetDir, file);
+      
+      if (!existsSync(destPath)) {
+        copyRecursive(sourcePath, destPath);
+      }
+    }
+  }
+
+  console.log('\n✅ Post-deployment complete!\n');
+}
+
+main();
+```
+
+#### `package.json`
+
+Update your package.json to use the script:
 
 ```json
 {
@@ -126,13 +247,18 @@ Update your `package.json` to include a postdeploy step that copies necessary fi
     "build.server": "vite build -c adapters/static/vite.config.ts",
     "preview": "npx http-server dist",
     "deploy": "pnpm run build && pnpm run build.server",
-    "postdeploy": "cp -r dist/build dist/assets dist/manifest.json dist/features.json dist/qwik-lens/ 2>/dev/null || true",
+    "postdeploy": "node scripts/postdeploy.js",
     "ssg": "pnpm run build.server && pnpm run preview"
   }
 }
 ```
 
-**Why `postdeploy` is needed:** The SSG process outputs to `dist/qwik-lens/`, but some assets (like `build/`, `assets/`, JSON files) are at the `dist/` root. This script copies them into the deployment directory.
+**Why this approach is better:**
+- Automatically copies all files from the `public/` directory
+- Future-proof: adding new files to `public/` requires no script changes
+- Provides clear console output showing what was copied
+- Handles errors gracefully
+- Checks for generated files at the dist root (like `q-manifest.json`)
 
 ### 5. GitHub Actions Workflow
 
