@@ -24,11 +24,11 @@ import "./global.css";
 
 // Use Vite's BASE_URL which respects the base config in vite.config.ts
 // For GitHub Pages, this will be "/qwik-lens/" when base is set
+// Remove trailing slash for JSON file paths
 const base = import.meta.env.BASE_URL || "/";
-// Remove trailing slash for consistency
-const repoPath = base.endsWith("/") && base !== "/" ? base.slice(0, -1) : base === "/" ? "" : base;
-const featuresEndpoint = repoPath + "/features.json";
-const manifestEndpoint = repoPath + "/manifest.json";
+const basePath = base === "/" ? "" : base.replace(/\/$/, "");
+const featuresEndpoint = basePath + "/features.json";
+const manifestEndpoint = basePath + "/manifest.json";
 
 export default component$(() => {
   const state = useStore<DataState>(createEmptyDataState());

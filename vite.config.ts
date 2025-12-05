@@ -22,6 +22,9 @@ errorOnDuplicatesPkgDeps(devDependencies, dependencies);
  */
 export default defineConfig(({ command, mode }): UserConfig => {
   return {
+    // Base path for GitHub Pages deployment
+    base: "/qwik-lens/",
+    
     plugins: [
       qwikRouter(),
       qwikVite(/**{ devTools: { clickToSource: false } }**/),
